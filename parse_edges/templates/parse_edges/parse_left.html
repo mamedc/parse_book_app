@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<style>
+		
+		.aligncenter {
+		    text-align: center;
+		}
+        
+        .center-fit {
+        	max-width: 50%;
+            max-height: 100vh;
+        }
+
+        #myCanvas {
+        	border: 1px solid #4287f5;
+        }
+
+	 </style>
+
+
+	<script type="text/javascript">
+
+	
+		// document.addEventListener('DOMContentLoaded', function() {
+		// 	canvas = document.querySelector('#myCanvas');
+		// 	context = canvas.getContext('2d');
+		// 	img = new Image();
+		// 	img.src = "{{ current_img }}";
+		// 	context.drawImage(img, 0, 0, img.width, img.height, 0, 0, 1000, 1333.333333);
+		// });
+		
+
+		window.onload = function(){
+
+			var canvas = document.getElementById('demo'),
+			    ctx = canvas.getContext('2d'),
+			    line = new Line(ctx),
+			    img = new Image;
+			
+			ctx.strokeStyle = '#eb4034'; ctx.lineWidth = 2;
+			
+			function Line(ctx) {
+			    var me = this;
+			    this.x1 = 0; this.x2 = 0; this.y1 = 0; this.y2 = 0;
+			    this.draw = function() {
+			        ctx.beginPath();
+			        ctx.moveTo(me.x1, me.y1);
+			        ctx.lineTo(me.x2, me.y2);
+			        ctx.stroke();
+			    }
+			}
+			
+			img.onload = start;
+			img.src = "{{ current_img }}";
+
+			function start() {
+			    ctx.drawImage(img, 0, 0, demo.width, demo.height);
+			    canvas.onmousemove = updateLine;
+			    //canvas.onmousedown = getPosition;
+			}
+
+			function updateLine(e) {
+			    var r = canvas.getBoundingClientRect(),
+			        x = e.clientX - r.left,
+			        y = e.clientY - r.top;
+			    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+			    line.x1 = x;
+			    line.y1 = 0;
+			    line.x2 = x;
+			    line.y2 = canvas.height;
+			    line.draw();
+			}
+		}
+
+		document.addEventListener("DOMContentLoaded", init, false);
+
+		function init() {
+	        var canvas = document.getElementById('demo');
+	        canvas.addEventListener('mousedown', getPosition, false);
+     	}
+		
+
+		 function getPosition(event) {
+	        var x = new Number();
+	        var y = new Number();
+	        var canvas = document.getElementById('demo');
+
+	        if (event.x != undefined && event.y != undefined) {
+	          x = event.x;
+	          y = event.y;
+	        }
+	        else { // Firefox method to get the position
+	          x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+	          y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+	        }
+
+	        x -= canvas.offsetLeft;
+	        y -= canvas.offsetTop;
+
+	        alert("x: " + x + "  y: " + y);
+		}
+		
+
+	</script>
+
+	<title>Left edge</title>
+</head>
+
+<body>
+<h2 class="aligncenter">Left edge</h2>
+<!--p class="aligncenter"><canvas id="myCanvas" width = "1000px" height="1333.333333px"></canvas></p-->
+<p class="aligncenter"><canvas id="demo" width = "1000px" height="1333.333333px"></canvas></p>
+</body>
+</html>
+
+
