@@ -55,10 +55,10 @@
 			        x = e.clientX - r.left,
 			        y = e.clientY - r.top;
 			    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-			    line.x1 = x;
-			    line.y1 = 0;
-			    line.x2 = x;
-			    line.y2 = canvas.height;
+			    line.x1 = 0;
+			    line.y1 = y;
+			    line.x2 = canvas.width;
+			    line.y2 = y;
 			    line.draw();
 			}
 
@@ -78,24 +78,24 @@
 	        y -= canvas.offsetTop;
 
 	        // Send value to aux form and submit
-	        document.getElementById('trim_input').value = x;
+	        document.getElementById('trim_input').value = y;
 	        document.getElementById('submit_btn').click(); 
 		}
 
 	</script>
 
-	<title>Right edge</title>
+	<title>Top edge</title>
 </head>
 
 <body>
-<h2 class="aligncenter">Trim right edge</h2>
+<h2 class="aligncenter">Trim top edge</h2>
 <h3 class="aligncenter">Image {{ img_number }} of {{ img_list_len }} - {{ current_img_file }}</h3>
 <p class="aligncenter"><canvas id="demo" width = "1000px" height="1333.333333px"></canvas></p>
 
 <br>
-<form id="form1" action="{% url 'parse_right_pg' img_index %}" method="post">
+<form id="form1" action="{% url 'parse_top_pg' img_index %}" method="post">
 	{% csrf_token %}
-	<input id="trim_input" type="text" name="x_trim_coord">
+	<input id="trim_input" type="text" name="y_trim_coord">
 </form>
 <button id="submit_btn" type="submit" form="form1" value="Submit">Submit</button>
 
