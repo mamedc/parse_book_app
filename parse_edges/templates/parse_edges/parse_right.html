@@ -94,16 +94,16 @@
 
 	</script>
 
-	<title>Left edge</title>
+	<title>Right edge</title>
 </head>
 
 <body>
-<h2 class="aligncenter">Trim left edge</h2>
+<h2 class="aligncenter">Trim right edge</h2>
 <h3 class="aligncenter">Image {{ img_number }} of {{ img_list_len }} - {{ current_img_file }}</h3>
 <p class="aligncenter"><canvas id="demo" width = "1000px" height="1333.333333px"></canvas></p>
 
 <br>
-<form id="form1" action="{% url 'parse_left_pg' img_index %}" method="post">
+<form id="form1" action="{% url 'parse_right_pg' img_index %}" method="post">
 	{% csrf_token %}
 	<input id="trim_input" type="text" name="x_trim_coord">
 </form>
