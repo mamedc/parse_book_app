@@ -11,4 +11,5 @@ urlpatterns = [
     path('parse_bottom/<int:img_index>/', pe_views.trim_bottom, name='parse_bottom_pg'),
     path('parse_header/<int:img_index>/', pe_views.trim_header, name='parse_header_pg'),
     path('parse_footer/<int:img_index>/', pe_views.trim_footer, name='parse_footer_pg'),
+    path('split_vertical/<int:img_index>/', pe_views.split_recipe_vertical, name='split_vertical_pg'),
 ]

@@ -102,6 +102,19 @@ def parse_ctrl(request):
 		footer_missing_len = len(footer_missing)
 		footer_done_len = total_images_len - footer_missing_len
 
+		# Vertical split
+	if True:
+		splt_vert_imgs = []
+		if len(trim_dict.keys()) > 0:
+			for img in trim_dict.keys():
+				if 'split_vertical' in trim_dict[img].keys():
+					splt_vert_imgs.append(img)
+			splt_vert_missing = list(set(img_list) - set(splt_vert_imgs))
+		else:
+			splt_vert_missing = img_list
+		splt_vert_missing_len = len(splt_vert_missing)
+		splt_vert_done_len = total_images_len - splt_vert_missing_len
+
 
 	context = {
 		'total_images_len': total_images_len,
@@ -129,6 +142,10 @@ def parse_ctrl(request):
 		'footer_missing': footer_missing,
 		'footer_missing_len': footer_missing_len,
 		'footer_done_len': footer_done_len,
+
+		'splt_vert_missing': splt_vert_missing,
+		'splt_vert_missing_len': splt_vert_missing_len,
+		'splt_vert_done_len': splt_vert_done_len,
 
 	}
 	
@@ -543,6 +560,75 @@ def trim_footer(request, img_index):
 				'img_number': img_index + 1,
 			}
 			return render(request, 'parse_edges/parse_footer.html', context)
+		
+		else:
+			html = "<html><body>End of images.</body></html>"
+			return HttpResponse(html)
+
+
+def split_recipe_vertical(request, img_index):
+
+	# List of files to trim
+	SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+	img_files_path = 'static\\\\parse_edges\\\\00_original_book_pics'
+	img_list = next(os.walk(os.path.join(SITE_ROOT, img_files_path)))[2][:5]
+	
+	# POST
+	if request.method == 'POST':
+
+		static_path = SITE_ROOT + '\\static\\parse_edges\\'
+		trim_dict_ = {'split_vertical': (int(request.POST.get('x_split_coord_1')), int(request.POST.get('x_split_coord_2')))}
+
+		# If existing dict
+		if os.path.isfile(static_path + 'trim_dict.pkl'):
+			# Open
+			with open(static_path + 'trim_dict.pkl', 'rb') as f: 
+				trim_dict = pickle.load(f)
+			# Update
+			if img_list[img_index] in trim_dict.keys():
+				trim_dict[img_list[img_index]].update(trim_dict_)
+			else:
+				trim_dict[img_list[img_index]] = trim_dict_
+			# Save
+			with open(static_path + 'trim_dict.pkl', 'wb') as f:
+				pickle.dump(trim_dict, f, pickle.HIGHEST_PROTOCOL)
+
+		# If not existing dict
+		else:
+			# Create dict
+			trim_dict = {img_list[img_index]: trim_dict_}
+			# Save
+			with open(static_path + 'trim_dict.pkl', 'wb') as f:
+				pickle.dump(trim_dict, f, pickle.HIGHEST_PROTOCOL)
+
+
+		# Go to next image
+		img_index += 1
+		if img_index < len(img_list):
+			context = {
+				'img_list_len': len(img_list),
+				'img_index': img_index,
+				'current_img_file': img_list[img_index],
+				'current_img_path': '\\\\' + img_files_path + '\\\\' + img_list[img_index],
+				'img_number': img_index + 1,
+			}
+			return render(request, 'parse_edges/split_vertical.html', context)
+		
+		else:
+			html = "<html><body>End of images.</body></html>"
+			return HttpResponse(html)
+	
+	# GET
+	else:
+		if img_index < len(img_list):
+			context = {
+				'img_list_len': len(img_list),
+				'img_index': img_index,
+				'current_img_file': img_list[img_index],
+				'current_img_path': '\\\\' + img_files_path + '\\\\' + img_list[img_index],
+				'img_number': img_index + 1,
+			}
+			return render(request, 'parse_edges/split_vertical.html', context)
 		
 		else:
 			html = "<html><body>End of images.</body></html>"
