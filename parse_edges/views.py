@@ -2,10 +2,20 @@ from django.shortcuts import render
 from django.http import HttpResponse
 import os
 import pickle
+import cv2
+import numpy as np
+
+from PIL import Image
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+import re
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 img_files_path = 'static\\\\parse_edges\\\\00_original_book_pics'
 static_path = SITE_ROOT + '\\static\\parse_edges\\'
+
+img_disp_width = 1000
+img_disp_height = 1333.333333
 
 
 def get_img_list(img_files_path):
@@ -633,7 +643,11 @@ def split_recipe_vertical(request, img_index):
 	if request.method == 'POST':
 
 		static_path = SITE_ROOT + '\\static\\parse_edges\\'
-		trim_dict_ = {'split_vertical': [int(request.POST.get('x_split_coord_1')), int(request.POST.get('x_split_coord_2'))]}
+		trim_dict_ = {'split_vertical': [
+			int(request.POST.get('x_split_coord_1')), 
+			int(request.POST.get('x_split_coord_2')), 
+			request.POST.get('rec_side'), 
+		]}
 
 		# If existing dict
 		if os.path.isfile(static_path + 'trim_dict.pkl'):
@@ -691,10 +705,6 @@ def split_recipe_vertical(request, img_index):
 			return HttpResponse(html)
 
 
-
-
-
-
 def trim_recipes(request, img_index):
 
 	dict_key_name = 'trim_recipes'
@@ -744,3 +754,84 @@ def trim_recipes(request, img_index):
 		
 		else:
 			return HttpResponse('<html><body>End of images.</body></html>')
+
+
+def read_procedures(request, img_index):
+
+	# List of files to trim
+	img_list = get_img_list(img_files_path)
+	
+	if img_index < len(img_list):
+		
+		# Open img
+		raw_img = cv2.imread(SITE_ROOT + '\\' + img_files_path + '\\' + img_list[img_index])
+		img = raw_img.copy()
+
+		# Load dict with trim infos
+		with open(static_path + 'trim_dict.pkl', 'rb') as f: 
+			trim_dict = pickle.load(f)
+		dict_ = trim_dict[img_list[img_index]]
+
+		# Correct for different dimentions
+		x_prop = img.shape[1] / img_disp_width
+		y_prop = img.shape[0] / img_disp_height
+
+		# Get cuts
+		left_edge = int(dict_['left_edge'] * x_prop)
+		right_edge = int(dict_['right_edge'] * x_prop)
+		top_edge = int(dict_['top_edge'] * y_prop)
+		bottom_edge = int(dict_['bottom_edge'] * y_prop)
+		header = int(dict_['header'] * y_prop)
+		footer = int(dict_['footer'] * y_prop)
+		split_vert_left = int(min(dict_['split_vertical'][:2]) * x_prop)
+		split_vert_right = int(max(dict_['split_vertical'][:2]) * x_prop)
+		procedure_side = dict_['split_vertical'][2]
+		recipe_cuts = [int(x) for x in np.array(sorted(dict_['trim_recipes'])) * y_prop]
+		recipe_cuts = recipe_cuts + [footer]
+
+		header_img = img[top_edge : header, left_edge : right_edge]
+		footer_img = img[footer : bottom_edge, left_edge : right_edge]
+
+		# For each recipe
+		for i in range(len(recipe_cuts)-1):
+			if procedure_side == 'left':
+				proc_img = img[recipe_cuts[i]:recipe_cuts[i+1], left_edge:split_vert_left]
+				ingr_img = img[recipe_cuts[i]:recipe_cuts[i+1], split_vert_right:right_edge]
+			else:
+				proc_img = img[recipe_cuts[i]:recipe_cuts[i+1], split_vert_right:right_edge]
+				ingr_img = img[recipe_cuts[i]:recipe_cuts[i+1], left_edge:split_vert_left]
+
+		# Apply OCR
+		gray = cv2.cvtColor(proc_img, cv2.COLOR_BGR2GRAY)
+		gray = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+		gray = cv2.medianBlur(gray, 3)
+		temp_img = project_fld + input_fld + '\\' + 'temp_img.jpg'
+		cv2.imwrite(temp_img, gray)
+		text = pytesseract.image_to_string(Image.open(temp_img))
+	    
+		with open(temp_img, 'rb') as f: procedure_img = f.read()   
+		os.remove(temp_img)
+
+
+
+
+		temp_path = SITE_ROOT + '\\' + img_files_path + '\\'
+		temp_proc_img = temp_path + 'temp_proc_img.jpg'
+		temp_ingr_img = temp_path + 'temp_ingr_img.jpg'
+		cv2.imwrite(temp_proc_img, proc_img)
+		cv2.imwrite(temp_ingr_img, ingr_img)
+
+
+		assert False, dict_
+
+		
+
+		html = "<html><body>End of images.</body></html>"
+		return HttpResponse(html)
+
+	else:
+
+		html = "<html><body>End of images.</body></html>"
+		return HttpResponse(html)
+
+

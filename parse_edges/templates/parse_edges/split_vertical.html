@@ -88,9 +88,18 @@
 	        // Click #2
 	        if (click_counter == 1) {
 	        	document.getElementById('split_input_2').value = x;
-	        	document.getElementById('click_counter_disp').innerHTML = "Split vertical - click 2 of 2";
+	        	document.getElementById('click_counter_disp').innerHTML = "Split vertical - indicate recipe side";
+	        }
+			// Click #3: Recipe side
+	        if (click_counter == 2) {
+	        	if (x <= document.getElementById('split_input_1').value) {
+	        		document.getElementById('split_input_3').value = 'left';
+	        	} else {
+	        		document.getElementById('split_input_3').value = 'right';
+	        	}
 	        	document.getElementById('submit_btn').click(); 
 	        }
+
 
 	        click_counter++
 		}
@@ -110,6 +119,7 @@
 	{% csrf_token %}
 	<input id="split_input_1" type="text" name="x_split_coord_1">
 	<input id="split_input_2" type="text" name="x_split_coord_2">
+	<input id="split_input_3" type="text" name="rec_side">
 </form>
 <button id="submit_btn" type="submit" form="form1" style="display: none;" value="Submit">Submit</button>
 
