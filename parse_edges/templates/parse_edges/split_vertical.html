@@ -83,12 +83,12 @@
 	        // Click #1
 	        if (click_counter == 0) {
 	        	document.getElementById('split_input_1').value = x;
-				document.getElementById('click_counter').value = "Split vertical - click 1 of 2";
+				document.getElementById('click_counter_disp').innerHTML = "Split vertical - click 1 of 2";
 	        }
 	        // Click #2
 	        if (click_counter == 1) {
 	        	document.getElementById('split_input_2').value = x;
-	        	document.getElementById('click_counter').value = "Split vertical - click 2 of 2";
+	        	document.getElementById('click_counter_disp').innerHTML = "Split vertical - click 2 of 2";
 	        	document.getElementById('submit_btn').click(); 
 	        }
 
@@ -97,21 +97,21 @@
 
 	</script>
 
-	<title>Top edge</title>
+	<title>Split vertical</title>
 </head>
 
 <body>
-<h2 id="click_counter" class="aligncenter">Split vertical - two clicks</h2>
+<h2 id="click_counter_disp" class="aligncenter">Split vertical - two clicks</h2>
 <h3 class="aligncenter">Image {{ img_number }} of {{ img_list_len }} - {{ current_img_file }}</h3>
 <p class="aligncenter"><canvas id="demo" width = "1000px" height="1333.333333px"></canvas></p>
 
 <br>
-<form id="form1" action="{% url 'split_vertical_pg' img_index %}" method="post">
+<form id="form1" action="{% url 'split_vertical_pg' img_index %}" method="post" style="display: none;">
 	{% csrf_token %}
 	<input id="split_input_1" type="text" name="x_split_coord_1">
 	<input id="split_input_2" type="text" name="x_split_coord_2">
 </form>
-<button id="submit_btn" type="submit" form="form1" value="Submit">Submit</button>
+<button id="submit_btn" type="submit" form="form1" style="display: none;" value="Submit">Submit</button>
 
 </body>
 </html>

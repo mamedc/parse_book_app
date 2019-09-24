@@ -3,6 +3,45 @@ from django.http import HttpResponse
 import os
 import pickle
 
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+img_files_path = 'static\\\\parse_edges\\\\00_original_book_pics'
+static_path = SITE_ROOT + '\\static\\parse_edges\\'
+
+
+def get_img_list(img_files_path):
+	SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+	img_list = next(os.walk(os.path.join(SITE_ROOT, img_files_path)))[2][:5]
+	return img_list
+
+
+def open_update_save_dict(static_path, img_list, img_index, trim_dict_):
+	# If existing dict
+	if os.path.isfile(static_path + 'trim_dict.pkl'):
+		
+		# Open
+		with open(static_path + 'trim_dict.pkl', 'rb') as f: 
+			trim_dict = pickle.load(f)
+		
+		# Update
+		if img_list[img_index] in trim_dict.keys():
+			trim_dict[img_list[img_index]].update(trim_dict_)
+		else:
+			trim_dict[img_list[img_index]] = trim_dict_
+		
+		# Save
+		with open(static_path + 'trim_dict.pkl', 'wb') as f:
+			pickle.dump(trim_dict, f, pickle.HIGHEST_PROTOCOL)
+
+	# If not existing dict
+	else:
+		# Create dict
+		trim_dict = {img_list[img_index]: trim_dict_}
+		# Save
+		with open(static_path + 'trim_dict.pkl', 'wb') as f:
+			pickle.dump(trim_dict, f, pickle.HIGHEST_PROTOCOL)
+
+
+
 def parse_ctrl(request):
 
 	# Load list of files to trim
@@ -102,7 +141,7 @@ def parse_ctrl(request):
 		footer_missing_len = len(footer_missing)
 		footer_done_len = total_images_len - footer_missing_len
 
-		# Vertical split
+	# Vertical split
 	if True:
 		splt_vert_imgs = []
 		if len(trim_dict.keys()) > 0:
@@ -114,6 +153,19 @@ def parse_ctrl(request):
 			splt_vert_missing = img_list
 		splt_vert_missing_len = len(splt_vert_missing)
 		splt_vert_done_len = total_images_len - splt_vert_missing_len
+
+	# Trim recipes
+	if True:
+		trim_recipes_imgs = []
+		if len(trim_dict.keys()) > 0:
+			for img in trim_dict.keys():
+				if 'trim_recipes' in trim_dict[img].keys():
+					trim_recipes_imgs.append(img)
+			trim_recipes_missing = list(set(img_list) - set(trim_recipes_imgs))
+		else:
+			trim_recipes_missing = img_list
+		trim_recipes_missing_len = len(trim_recipes_missing)
+		trim_recipes_done_len = total_images_len - trim_recipes_missing_len
 
 
 	context = {
@@ -146,6 +198,10 @@ def parse_ctrl(request):
 		'splt_vert_missing': splt_vert_missing,
 		'splt_vert_missing_len': splt_vert_missing_len,
 		'splt_vert_done_len': splt_vert_done_len,
+
+		'trim_recipes_missing': trim_recipes_missing,
+		'trim_recipes_missing_len': trim_recipes_missing_len,
+		'trim_recipes_done_len': trim_recipes_done_len,
 
 	}
 	
@@ -577,7 +633,7 @@ def split_recipe_vertical(request, img_index):
 	if request.method == 'POST':
 
 		static_path = SITE_ROOT + '\\static\\parse_edges\\'
-		trim_dict_ = {'split_vertical': (int(request.POST.get('x_split_coord_1')), int(request.POST.get('x_split_coord_2')))}
+		trim_dict_ = {'split_vertical': [int(request.POST.get('x_split_coord_1')), int(request.POST.get('x_split_coord_2'))]}
 
 		# If existing dict
 		if os.path.isfile(static_path + 'trim_dict.pkl'):
@@ -633,3 +689,58 @@ def split_recipe_vertical(request, img_index):
 		else:
 			html = "<html><body>End of images.</body></html>"
 			return HttpResponse(html)
+
+
+
+
+
+
+def trim_recipes(request, img_index):
+
+	dict_key_name = 'trim_recipes'
+	html_to_render = 'parse_edges/trim_recipes.html'
+
+	# List of files to trim
+	img_list = get_img_list(img_files_path)
+	
+	# POST
+	if request.method == 'POST':
+
+		# Extract form fields with y coords (we need the loop because we
+		# dont know how many recipes we will have)
+		y_coords = []
+		for y_key in [k for k in request.POST.keys() if k[:6] == 'y_trim']:
+			y_coords.append(int(request.POST.get(y_key)))
+
+		trim_dict_ = {dict_key_name: y_coords}
+		open_update_save_dict(static_path, img_list, img_index, trim_dict_)
+
+		# Go to next image
+		img_index += 1
+		if img_index < len(img_list):
+			context = {
+				'img_list_len': len(img_list),
+				'img_index': img_index,
+				'current_img_file': img_list[img_index],
+				'current_img_path': '\\\\' + img_files_path + '\\\\' + img_list[img_index],
+				'img_number': img_index + 1,
+			}
+			return render(request, html_to_render, context)
+		
+		else:
+			return HttpResponse('<html><body>End of images.</body></html>')
+	
+	# GET
+	else:
+		if img_index < len(img_list):
+			context = {
+				'img_list_len': len(img_list),
+				'img_index': img_index,
+				'current_img_file': img_list[img_index],
+				'current_img_path': '\\\\' + img_files_path + '\\\\' + img_list[img_index],
+				'img_number': img_index + 1,
+			}
+			return render(request, html_to_render, context)
+		
+		else:
+			return HttpResponse('<html><body>End of images.</body></html>')

@@ -22,6 +22,8 @@
 
 	<script type="text/javascript">
 
+		let click_counter = 0
+
 		window.onload = function(){
 
 			var canvas = document.getElementById('demo'),
@@ -78,26 +80,44 @@
 	        y -= canvas.offsetTop;
 
 	        // Send value to aux form and submit
-	        document.getElementById('trim_input').value = y;
-	        document.getElementById('submit_btn').click(); 
+	        // Click #1
+	        if (click_counter == 0) {
+	        	document.getElementById('trim_input_0').value = y;
+				document.getElementById('click_counter_disp').innerHTML = "Trim recipes - 1 recipe";
+	        } else {
+	        	new_field = document.getElementById("form1").lastElementChild.cloneNode(true);
+	        	new_field.name = "y_trim_coord_" + click_counter;
+	        	new_field.id = "trim_input_" + click_counter;
+	        	new_field.value = y;
+				document.querySelector('#form1').appendChild(new_field);
+				document.getElementById('click_counter_disp').innerHTML = "Trim recipes - " + (click_counter+1) + " recipes";
+	        }
+	        
+	        click_counter++
+
+
 		}
 
 	</script>
 
-	<title>Header</title>
+	<title>Trim recipes</title>
 </head>
 
 <body>
-<h2 class="aligncenter">Trim header</h2>
+<h2 id="click_counter_disp" class="aligncenter">Trim recipes</h2>
 <h3 class="aligncenter">Image {{ img_number }} of {{ img_list_len }} - {{ current_img_file }}</h3>
+
+<div class="aligncenter" >
+	<button id="submit_btn" type="submit" form="form1" value="Submit">Submit</button>
+</div>
+
 <p class="aligncenter"><canvas id="demo" width = "1000px" height="1333.333333px"></canvas></p>
 
 <br>
-<form id="form1" action="{% url 'parse_header_pg' img_index %}" method="post" style="display: none;">
+<form id="form1" action="{% url 'trim_recipes_pg' img_index %}" method="post" style="display: none;">
 	{% csrf_token %}
-	<input id="trim_input" type="text" name="y_trim_coord">
+	<input id="trim_input_0" type="text" name="y_trim_coord_0">
 </form>
-<button id="submit_btn" type="submit" form="form1" style="display: none;" value="Submit">Submit</button>
 
 </body>
 </html>

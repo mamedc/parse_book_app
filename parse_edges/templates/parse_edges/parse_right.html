@@ -93,11 +93,11 @@
 <p class="aligncenter"><canvas id="demo" width = "1000px" height="1333.333333px"></canvas></p>
 
 <br>
-<form id="form1" action="{% url 'parse_right_pg' img_index %}" method="post">
+<form id="form1" action="{% url 'parse_right_pg' img_index %}" method="post" style="display: none;">
 	{% csrf_token %}
 	<input id="trim_input" type="text" name="x_trim_coord">
 </form>
-<button id="submit_btn" type="submit" form="form1" value="Submit">Submit</button>
+<button id="submit_btn" type="submit" form="form1" style="display: none;" value="Submit">Submit</button>
 
 </body>
 </html>
